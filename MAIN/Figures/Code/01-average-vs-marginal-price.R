@@ -2,9 +2,7 @@
 
 
 
-
-
-##### This script creates "Images/01-average-vs-marginal-price.png" #####
+#### This script creates "Images/01-average-vs-marginal-price.png"
 
 
 # load packages
@@ -32,8 +30,8 @@ costs_df <- data.frame(gal1000 = c(1:volume_water_blk1_qty, volume_water_blk1_qt
 
 # marginal
 costs_df$water_marginal <- ifelse(costs_df$gal1000 <= volume_water_blk1_qty,                                            volume_water_blk1_rate,
-                                  ifelse(costs_df$gal1000 > volume_water_blk1_qty & costs_df$gal1000 <= volume_water_blk2_qty, volume_water_blk2_rate,
-                                         ifelse(costs_df$gal1000 > volume_water_blk2_qty,                                             volume_water_blk3_rate, NA)))
+                           ifelse(costs_df$gal1000 > volume_water_blk1_qty & costs_df$gal1000 <= volume_water_blk2_qty, volume_water_blk2_rate,
+                           ifelse(costs_df$gal1000 > volume_water_blk2_qty,                                             volume_water_blk3_rate, NA)))
 
 
 # adjust values at kinks so there's a vertical line
