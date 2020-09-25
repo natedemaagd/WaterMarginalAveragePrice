@@ -5,10 +5,6 @@
 #### This script adds the average water bill for each household, conditional on their sewage disposal type (sewer or on-site system)
 
 
-# load packages
-library(ggplot2); library(dplyr)
-
-
 # load definitions and data
 source("MAIN/00-definitions.R")
 load("C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Cesspools/Data/regression_dat_FINAL.rdata")
