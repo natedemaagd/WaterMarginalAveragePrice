@@ -2,7 +2,7 @@
 
 
 
-#### This script adds the average water bill for each household, conditional on their sewage disposal type (sewer or on-site system)
+#### This script adds the average water bill for each household, conditional on their sewage disposal type (sewer or on-site system). Then, it estimates a demand function for each household, P = AQ^(1/e)
 
 
 # load definitions and data
@@ -19,6 +19,7 @@ all.sfds$avg.30day.use       <- all.sfds$avg.daily.use * 30
 
 
 # calculate bill (just water, no sewer)
+                                    # find block                                                                                       # add appropriate charges for consumption level
 all.sfds$total.water.bill <- ifelse(all.sfds$avg.30day.use <= volume_water_blk1_qty,                                                   fixed_water_rate + volume_water_blk1_rate * all.sfds$avg.30day.use,
                                     
                              ifelse(all.sfds$avg.30day.use >  volume_water_blk1_qty & all.sfds$avg.30day.use <= volume_water_blk2_qty, fixed_water_rate + volume_water_blk1_rate * volume_water_blk1_qty +
@@ -35,6 +36,14 @@ all.sfds$total.water.sewer.bill <- ifelse(all.sfds$no.sewer == 'Sewer', all.sfds
 
 # calculate average cost per gal
 all.sfds$total.water.sewer.bill.avg.per.gal <- all.sfds$total.water.sewer.bill / all.sfds$avg.30day.use
+
+
+# add demand function parameter `A` in P = AQ^(1/e)
+all.sfds$A <- all.sfds$water.bill.avg.per.gal * 1/(all.sfds$avg.30day.use^(1/elasticity_demand))
+
+
+# get median A by group
+avg_A <- aggregate(all.sfds$A, list(all.sfds$no.sewer), median)
 
 
 # save data
