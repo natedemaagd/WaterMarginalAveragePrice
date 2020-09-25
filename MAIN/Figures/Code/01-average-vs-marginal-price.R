@@ -85,10 +85,16 @@ costs_df_melt <- data.frame(value    = c(costs_df$water_marginal, costs_df$water
 
 
 # plot
-ggplot(data = costs_df_melt) + geom_line(aes(x = x, y = value, color = variable, linetype = type), size = 0.8) + labs(x = 'Consumption (1000s gal)', y = 'Price ($/1000 gal)') +
-  
+PricePlot <- ggplot(data = NULL) + geom_line(data = costs_df_melt, aes(x = x, y = value, color = variable, linetype = type), size = 0.8) + labs(x = 'Consumption (1000s gal)', y = 'Price ($/1000 gal)') +
   scale_color_discrete(name = 'Service type') + scale_linetype_manual(name = 'Price type', values = c('dotted', 'solid')) +
   scale_x_continuous(breaks = c(0,10000,20000,30000,40000), labels = c(0,10,20,30,40))+
   scale_y_continuous(breaks = seq(0,25,by=5)/1000, labels = seq(0,25,by=5), limits = c(0,.025))
 
-ggsave(filename = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/WaterMarginalAveragePrice/MAIN/Figures/Images/01-average-vs-marginal-price.png', dpi = 300, height = 4, width = 7)
+
+# save plot as image and R object
+ggsave(filename =         'MAIN/Figures/Images/01-average-vs-marginal-price.png', plot = PricePlot, dpi = 300, height = 4, width = 7)
+saveRDS(PricePlot, file = 'MAIN/Figures/Images/01-average-vs-marginal-price.rds')
+
+
+# save cost data.frame
+saveRDS(costs_df, file = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01PLOT-cost-dataframe.rds')

@@ -39,7 +39,7 @@ all.sfds$total.water.sewer.bill.avg.per.gal <- all.sfds$total.water.sewer.bill /
 
 
 # add demand function parameter `A` in P = AQ^(1/e)
-all.sfds$A <- all.sfds$water.bill.avg.per.gal * 1/(all.sfds$avg.30day.use^(1/elasticity_demand))
+all.sfds$A <- all.sfds$total.water.sewer.bill.avg.per.gal * 1/(all.sfds$avg.30day.use^(1/elasticity_demand))
 
 
 # get median A by group
@@ -47,4 +47,5 @@ avg_A <- aggregate(all.sfds$A, list(all.sfds$no.sewer), median)
 
 
 # save data
-saveRDS(all.sfds, file = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01-add-avg-consumer-bills.rds')
+saveRDS(all.sfds, file = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01-add-avg-consumer-bills-and-demand.rds')
+saveRDS(avg_A,    file = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01b-avg_demand_A_vals.rds')
