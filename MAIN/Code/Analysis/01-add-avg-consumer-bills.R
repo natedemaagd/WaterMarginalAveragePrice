@@ -38,7 +38,7 @@ all.sfds$total.water.sewer.bill <- ifelse(all.sfds$no.sewer == 'Sewer', all.sfds
 
 
 # calculate average cost per gal
-all.sfds$water.bill.avg.per.gal <- all.sfds$total.water.sewer.bill / all.sfds$avg.30day.use
+all.sfds$total.water.sewer.bill.avg.per.gal <- all.sfds$total.water.sewer.bill / all.sfds$avg.30day.use
 
 
 # save data
