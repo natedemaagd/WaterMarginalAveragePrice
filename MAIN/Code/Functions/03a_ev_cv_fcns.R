@@ -11,7 +11,8 @@ welfare_difference <- function(qe,       # observed quantity consumed
                                block.2,  # top of second block
                                p.1,      # price per unit first block
                                p.2,      # price per unit second block
-                               p.3){      # price per unit third block){
+                               p.3,      # price per unit third block)
+                               plot_data = FALSE){    # do you want to also return the points for plotting budget constraint and util function?
   
   
   # given current utility consumption, calculate consumption of all other goods
@@ -153,10 +154,27 @@ welfare_difference <- function(qe,       # observed quantity consumed
   welfare <- wf(choice = qe, s = s)
   
   
-  # output vector
-  final_vector <- c(qe, s, bc, qe.opt, welfare)
-  names(final_vector) <- c('Actual consumption', 'Elasticity', 'Budget constraint', 'Util-maximizing consumption', 'EV', 'CV')
+  # output data - if they want plot data, return a list with two elements:
+      # 1) a vector with the current and optimal consumption values, along with EV and CV
+      # 2) all data needed to create the plot (a data.frame)
+    # else, just return the vector
+  if(isTRUE(plot_data)){
+    
+    final_vector <- c(qe, s, bc, qe.opt, welfare)
+    names(final_vector) <- c('Actual consumption', 'Elasticity', 'Budget constraint', 'Util-maximizing consumption', 'EV', 'CV')
+    
+    plot_data <- list(zed, joe, intercepts_choice, ces_points, ces2_points)
+    names(plot_data) <- c('Q_demand_range', 'Q_all_other_goods', 'avg_price_intercepts', 'utility_observed_consumption', 'utility_optimal_consumption')
+    
+    final_data <- list(final_vector, plot_data)
+    
+  } else {
+    
+    final_data <- c(qe, s, bc, qe.opt, welfare)
+    names(final_data) <- c('Actual consumption', 'Elasticity', 'Budget constraint', 'Util-maximizing consumption', 'EV', 'CV')
+    
+  }
   
-  return(final_vector)
+  return(final_data)
   
 }
