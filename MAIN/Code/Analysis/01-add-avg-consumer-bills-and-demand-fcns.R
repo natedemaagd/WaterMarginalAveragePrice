@@ -37,10 +37,7 @@ all.sfds$total.water.sewer.bill.avg.per.gal <- all.sfds$total.water.sewer.bill /
 
 
 
-#### For each consumer, estimate demand curve A value: P = AQ^(1/e) --> A = P/(Q^(1/e))
-
-
-# add demand function parameter `A` in P = AQ^(1/e)
+# for each consumer, estimate demand curve A value: P = AQ^(1/e) --> A = P/(Q^(1/e))
 all.sfds$A <- all.sfds$total.water.sewer.bill.avg.per.gal * 1/(all.sfds$avg.30day.use^(1/elasticity_demand))
 
 
