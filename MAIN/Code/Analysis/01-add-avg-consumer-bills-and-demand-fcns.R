@@ -10,9 +10,6 @@ source("MAIN/00-definitions.R")
 load("C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Cesspools/Data/regression_dat_FINAL.rdata")
 
 
-# For each consumer, estimate demand curve A value: P = AQ^(1/e) --> A = P/(Q^(1/e))
-
-
 # create 30-day monthly consumption value
 all.sfds$avg.30day.use.1000s <- all.sfds$avg.daily.use * 30 / 1000
 all.sfds$avg.30day.use       <- all.sfds$avg.daily.use * 30
@@ -36,6 +33,11 @@ all.sfds$total.water.sewer.bill <- ifelse(all.sfds$no.sewer == 'Sewer', all.sfds
 
 # calculate average cost per gal
 all.sfds$total.water.sewer.bill.avg.per.gal <- all.sfds$total.water.sewer.bill / all.sfds$avg.30day.use
+
+
+
+
+#### For each consumer, estimate demand curve A value: P = AQ^(1/e) --> A = P/(Q^(1/e))
 
 
 # add demand function parameter `A` in P = AQ^(1/e)
