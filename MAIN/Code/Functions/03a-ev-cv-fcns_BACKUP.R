@@ -69,8 +69,8 @@ welfare_difference <- function(qe,       # observed quantity consumed
     a = uniroot( function(x) 1/ap - (x/(1-x))*(qo/choice)^(r-1), c(0,1) )$root
     u0 = (a*qo^r + (1-a)*choice^r)^(1/r)
     qoUbar = function(qe) ( (1/a)*u0^r - ((1-a)/a)*qe^r )^(1/r)
-    # consider range of qe around choice, say +/- 20%
-    qe.range = seq(choice-(choice*1.2), choice+(choice*1.2), length=200)
+    # consider range of qe around choice, say +/- 10
+    qe.range = seq(choice-7, choice+12, length=200)
     qo.range = rep(0, 200)
     for(i in 1:200) qo.range[i] = qoUbar(qe.range[i])
     
@@ -100,8 +100,8 @@ welfare_difference <- function(qe,       # observed quantity consumed
   }
   
   
-  # find util-maximizing quantity of electricity within a range +/- 20% of actual consumption
-  qe.opt = optimize(utility, c(qe-(qe*1.2),qe+(qe*1.2)), s=s, choice=qe, maximum=T)$maximum
+  # calculate util-maximizing quantity of electricity
+  qe.opt = optimize(utility, c(qe-20,qe+20), s=s, choice=qe, maximum=T)$maximum
   
   
   # add second CES curve
@@ -116,7 +116,7 @@ welfare_difference <- function(qe,       # observed quantity consumed
     qo.qe = qaog(qe)
     u0 = (a*qo.qe^r + (1-a)*qe^r)^(1/r)
     qoUbar = function(qe) ( (1/a)*u0^r - ((1-a)/a)*qe^r )^(1/r)
-    qe.range = seq(choice-(choice*1.2), choice+(choice*1.2), length=200)
+    qe.range = seq(choice-7, choice+12, length=200)
     qo.range = rep(0, 200)
     for(i in 1:200) qo.range[i] = qoUbar(qe.range[i])
     
@@ -179,8 +179,5 @@ welfare_difference <- function(qe,       # observed quantity consumed
 }
 
 
-# example
-x <- welfare_difference(qe = 25, s = 0.2,  bc = 100, fc = 20, block.1 = 10, block.2 = 30, p.1 = 1.5, p.2 = 2.5, p.3 = 4, plot_data = TRUE)
 
-# example with our data
-y <- welfare_difference(qe = 14, s = 0.06, bc = 80000, fc = 9.26, block.1 = 13, block.2 = 30, p.1 = 4.42, p.2 = 5.33, p.3 = 7.94, plot_data = TRUE)
+x <- welfare_difference(qe = 25, s = 0.2, bc = 100, fc = 20, block.1 = 10, block.2 = 30, p.1 = 1.5, p.2 = 2.5, p.3 = 4, plot_data = TRUE)
