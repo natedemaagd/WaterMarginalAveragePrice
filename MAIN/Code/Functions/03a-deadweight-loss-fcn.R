@@ -17,6 +17,7 @@ volume_water_blk3_rate <- 0.00749
 
 
 # given the actual consumption and optimal consumption of the household, calculate its deadweight loss ($/month)
+# many cases depending on whether actual and optimal consumption are in the same or different blocks
 
 
 deadweight_loss <- function(q_actual, q_optimal, A, no.sewer = 'Other'){
