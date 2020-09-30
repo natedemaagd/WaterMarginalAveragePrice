@@ -190,7 +190,7 @@ water_use_melt <- data.frame(value    = c(all.sfds$avg.30day.use, all.sfds$avg.3
 
 
 # plot distributions of water use: current, utility-maximizing, MUC = 1.84, and MUC = 4.26
-ggplot(data = water_use_melt) + geom_boxplot(aes(x = variable, y = value/1000),
+water_use_distributions <- ggplot(data = water_use_melt) + geom_boxplot(aes(x = variable, y = value/1000),
                                              outlier.shape = NA) +
   
   # change axis labels
@@ -216,7 +216,7 @@ ggplot(data = water_use_melt) + geom_boxplot(aes(x = variable, y = value/1000),
                      format(round(median(water_use_melt[water_use_melt$variable == 'Socially optimal,\nMUC = $1.84/tgal', 1], na.rm = TRUE)/1000, 2), nsmall = 2),
                      format(round(median(water_use_melt[water_use_melt$variable == 'Socially optimal,\nMUC = $4.26/tgal', 1], na.rm = TRUE)/1000, 2), nsmall = 2)))
 
-ggsave(filename = 'Figures/Images/02-optimal-water-use-distributions.png', height = 5, width = 7, dpi = 300)
+ggsave(plot = water_use_distributions, filename = 'Figures/Images/02-optimal-water-use-distributions.png', height = 5, width = 7, dpi = 300)
 
 
 rm(optimal_consumption, Q_intercept_fcn, water_use_melt)
@@ -250,21 +250,25 @@ elasticity_demand <- -0.020
 
   # if consumers respond to avg price
   all.sfds$DWL_avp_elasticity020_MUC184 <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity020_MUC184[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC184[[i]],
-                                                                             A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity020_MUC184[[i]] <- deadweight_loss(q_actual  = all.sfds$avg.30day.use[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC184[[i]],
+                                                                                           A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   all.sfds$DWL_avp_elasticity020_MUC368 <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity020_MUC368[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC368[[i]],
-                                                                             A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity020_MUC368[[i]] <- deadweight_loss(q_actual  = all.sfds$avg.30day.use[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC368[[i]],
+                                                                                           A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   # if consumers respond to marginal price
   all.sfds$DWL_mp_elasticity020_MUC184  <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity020_MUC184[[i]]  <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC184[[i]],
-                                                                             A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity020_MUC184[[i]]  <- deadweight_loss(q_actual  = all.sfds$avg.30day.use_optimal_elasticity020_MUC000[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC184[[i]],
+                                                                                           A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   all.sfds$DWL_mp_elasticity020_MUC368  <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity020_MUC368[[i]]  <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC368[[i]],
-                                                                             A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity020_MUC368[[i]]  <- deadweight_loss(q_actual  = all.sfds$avg.30day.use_optimal_elasticity020_MUC000[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC368[[i]],
+                                                                                           A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   
 # elasticity -0.060; MUC = 0, MUC = 1.84, and MUC = 4.26
@@ -273,21 +277,25 @@ elasticity_demand <- -0.060
 
   # if consumers respond to avg price
   all.sfds$DWL_avp_elasticity060_MUC184 <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity060_MUC184[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC184[[i]],
-                                                                             A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity060_MUC184[[i]] <- deadweight_loss(q_actual  = all.sfds$avg.30day.use[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC184[[i]],
+                                                                                           A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   all.sfds$DWL_avp_elasticity060_MUC368 <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity060_MUC368[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC368[[i]],
-                                                                             A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity060_MUC368[[i]] <- deadweight_loss(q_actual  = all.sfds$avg.30day.use[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC368[[i]],
+                                                                                           A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   # if consumers respond to marginal price
   all.sfds$DWL_mp_elasticity060_MUC184  <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity060_MUC184[[i]]  <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC184[[i]],
-                                                                             A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity060_MUC184[[i]]  <- deadweight_loss(q_actual  = all.sfds$avg.30day.use_optimal_elasticity060_MUC000[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC184[[i]],
+                                                                                           A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   all.sfds$DWL_mp_elasticity060_MUC368  <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity060_MUC368[[i]]  <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC368[[i]],
-                                                                             A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity060_MUC368[[i]]  <- deadweight_loss(q_actual  = all.sfds$avg.30day.use_optimal_elasticity060_MUC000[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC368[[i]],
+                                                                                           A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   
 # elasticity -0.326; MUC = 0, MUC = 1.84, and MUC = 4.26
@@ -296,21 +304,25 @@ elasticity_demand <- -0.326
 
   # if consumers respond to avg price
   all.sfds$DWL_avp_elasticity326_MUC184 <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity326_MUC184[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC184[[i]],
-                                                                             A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity326_MUC184[[i]] <- deadweight_loss(q_actual  = all.sfds$avg.30day.use[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC184[[i]],
+                                                                                           A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   all.sfds$DWL_avp_elasticity326_MUC368 <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity326_MUC368[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC368[[i]],
-                                                                             A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_avp_elasticity326_MUC368[[i]] <- deadweight_loss(q_actual  = all.sfds$avg.30day.use[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC368[[i]],
+                                                                                           A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   # if consumers respond to marginal price
   all.sfds$DWL_mp_elasticity326_MUC184  <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity326_MUC184[[i]]  <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC184[[i]],
-                                                                             A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity326_MUC184[[i]]  <- deadweight_loss(q_actual  = all.sfds$avg.30day.use_optimal_elasticity326_MUC000[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC184[[i]],
+                                                                                           A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   all.sfds$DWL_mp_elasticity326_MUC368  <- NA
-  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity326_MUC368[[i]]  <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC368[[i]],
-                                                                             A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+  for(i in 1:nrow(all.sfds)){all.sfds$DWL_mp_elasticity326_MUC368[[i]]  <- deadweight_loss(q_actual  = all.sfds$avg.30day.use_optimal_elasticity326_MUC000[[i]],
+                                                                                           q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC368[[i]],
+                                                                                           A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
   
   
   
@@ -337,3 +349,13 @@ sum(all.sfds$DWL_mp_elasticity326_MUC368,  na.rm = TRUE)
 ```
 
 
+
+
+# save data
+
+```{r save data}
+
+
+saveRDS(all.sfds, file = "C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01_RESULTS_optimal_consumption_DWL_current_pricing.rds")
+
+```
