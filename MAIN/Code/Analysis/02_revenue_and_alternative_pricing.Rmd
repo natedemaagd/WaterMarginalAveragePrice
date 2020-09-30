@@ -1,0 +1,72 @@
+---
+title: "02 - Revenue analysis under alternative pricing schemes"
+author: "Nathan DeMaagd"
+date: "9/30/2020"
+output: html_document
+---
+
+
+
+
+This markdown file calculates current utility revenue. It then compares revenue and relative efficiency of alternative pricing schemes. It is dependent on the scripts in the 'MAIN/Functions' folder and parameters defined in the 'MAIN/00-definitions.R' file.
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+# set wd
+knitr::opts_knit$set(root.dir = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/WaterMarginalAveragePrice/MAIN/')
+
+
+# load packages
+library(doParallel); library(ggplot2)
+
+registerDoParallel(cores = 10)
+
+```
+
+
+
+
+Load water use data and parameters. NOTE: Estimate of MUC comes from (Ordering the extraction of renewable resources: The case of multiple aquifers (Roumasset and Wada, 2012))[https://www.sciencedirect.com/science/article/abs/pii/S0928765511000625]. They estimate an efficiency price of \$2.16/tgal and a marginal price of \$0.31/tgal, giving a MUC of \$1.84/tgal.
+
+```{r load data and parameters, results = 'hide'}
+
+
+# load definitions
+source("00-definitions.R")
+
+
+# load billing data with optimal consumption and DWL from previous Rmd file
+all.sfds <- readRDS("C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01_RESULTS_optimal_consumption_DWL_current_pricing.rds")
+
+```
+
+
+
+
+# 04 - First analyze revenue under current pricing
+
+Under the current block prices, what are consumers paying for their water? What is the total revenue earned by the utility each month?
+
+```{r 04 - revenue under current pricing}
+
+
+# total revenue
+total_revenue_current     <- sum(all.sfds$total.water.bill, na.rm = TRUE)
+total_revenue_label       <- paste0('$', round(total_revenue/1e6, 2))
+
+
+# boxplot of water bill (note we exclude the sewer portion since that is not revenue for the water utility)
+current_revenue_density <- ggplot(data = all.sfds) +
+  geom_histogram(aes(total.water.bill),
+                 bins = 100, alpha = 0.6, color = 'gray30', fill = 'gray30') +
+  scale_x_continuous(limits = quantile(all.sfds$total.water.bill, probs = c(0.01, 0.98))) +
+  labs(x = 'Household average water bill ($/mo)', y = 'Number of households') +
+  annotate('text', x = 100, y = 4000, label = paste0("Water utility current revenue\n", total_revenue_mil, ' mil/mo'), hjust = 0)
+
+ggsave(filename = "Figures/Images/04-current-water-bills.png", height = 4, width = 7)
+
+```

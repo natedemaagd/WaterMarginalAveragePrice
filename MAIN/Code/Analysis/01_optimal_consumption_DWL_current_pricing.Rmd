@@ -1,5 +1,5 @@
 ---
-title: "master"
+title: "01 - Optimal consumption and DWL under current pricing"
 author: "Nathan DeMaagd"
 date: "9/29/2020"
 output: html_document
@@ -8,7 +8,7 @@ output: html_document
 
 
 
-This markdown file runs the main analysis, and is dependent on the scripts in the 'MAIN/Functions' folder and parameters defined in the 'MAIN/00-definitions.R' file.
+This markdown file estimates a demand function for each household using elasticity estimates from (DeMaagd and Roberts(2020))[https://www.researchgate.net/publication/343825978_Estimating_water_demand_using_price_differences_of_wastewater_services], and calculates optimal consumption with and without consideration of marginal user cost. It then calculates deadweight loss. It is dependent on the scripts in the 'MAIN/Functions' folder and parameters defined in the 'MAIN/00-definitions.R' file.
 
 
 
@@ -30,7 +30,7 @@ registerDoParallel(cores = 10)
 
 
 
-Load water use data and parameters. NOTE: Estimate of MUC comes from (Ordering the extraction of renewable resources: The case of multiple aquifers (Roumasset and Wada, 2012)[https://www.sciencedirect.com/science/article/abs/pii/S0928765511000625]. They estimate an efficiency price of \$2.16/tgal and a marginal price of \$0.31/tgal, giving a MUC of \$1.84/tgal.
+Load water use data and parameters. NOTE: Estimate of MUC comes from (Ordering the extraction of renewable resources: The case of multiple aquifers (Roumasset and Wada, 2012))[https://www.sciencedirect.com/science/article/abs/pii/S0928765511000625]. They estimate an efficiency price of \$2.16/tgal and a marginal price of \$0.31/tgal, giving a MUC of \$1.84/tgal.
 
 ```{r load data and parameters, results = 'hide'}
 
