@@ -129,7 +129,7 @@ rm(demand_A, avg_A_elasticity_020, avg_A_elasticity_060, avg_A_elasticity_326)
 
 # 02 - Optimal consumption
 
-With the demand curves estimated for each household, we can calculate the present-day utility-maximizing and socially-optimal levels of consumption for each household. Utility-maximizing means present-day utility, with no regard to the marginal user cost of water use. Socially-optimal means consideration for MUC; we test an estimate from ()[]
+With the demand curves estimated for each household, we can calculate the present-day utility-maximizing and socially-optimal levels of consumption for each household. Utility-maximizing means present-day utility, with no regard to the marginal user cost of water use. Socially-optimal means consideration for MUC; we test an estimate from (Ordering the extraction of renewable resources: The case of multiple aquifers (Roumasset and Wada, 2012)[https://www.sciencedirect.com/science/article/abs/pii/S0928765511000625].
 
 ```{r 02 - optimal consumption}
 
