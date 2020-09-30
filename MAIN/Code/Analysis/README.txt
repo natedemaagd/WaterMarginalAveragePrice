@@ -1,0 +1,3 @@
+The markdown files in this folder perform the main analysis for the project. They rely on functions generated in the Code/Functions folder.
+
+01_optimal_consumption_DWL_current_pricing - estimate demand curves for individual households, optimal consumption under current block pricing structure, and DWL under current block pricing structure, with considerations for MUC and uncertainty in demand elasticity.
