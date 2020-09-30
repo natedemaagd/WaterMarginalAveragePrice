@@ -1,0 +1,317 @@
+---
+title: "master"
+author: "Nathan DeMaagd"
+date: "9/29/2020"
+output: html_document
+---
+
+
+
+
+This markdown file runs the main analysis, and is dependent on the scripts in the 'MAIN/Functions' folder and parameters defined in the 'MAIN/00-definitions.R' file.
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+# set wd
+knitr::opts_knit$set(root.dir = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/WaterMarginalAveragePrice/MAIN/')
+
+
+# load packages
+library(doParallel); library(ggplot2)
+
+registerDoParallel(cores = 10)
+
+```
+
+
+
+
+Load water use data and parameters. NOTE: Estimate of MUC comes from (Ordering the extraction of renewable resources: The case of multiple aquifers (Roumasset and Wada, 2012)[https://www.sciencedirect.com/science/article/abs/pii/S0928765511000625]. They estimate an efficiency price of \$2.16/tgal and a marginal price of \$0.31/tgal, giving a MUC of \$1.84/tgal.
+
+```{r load data and parameters, results = 'hide'}
+
+
+# load definitions
+source("00-definitions.R")
+
+
+# load billing data
+load("C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Cesspools/Data/regression_dat_FINAL.rdata")
+
+```
+
+
+
+
+# 00 - Calculate consumer bills
+
+First, we use the pricing information to calculate average monthly bills, given households' average monthly water usage.
+
+```{r monthly bills}
+
+
+# create 30-day monthly consumption value
+all.sfds$avg.30day.use.1000s <- all.sfds$avg.daily.use * 30 / 1000
+all.sfds$avg.30day.use       <- all.sfds$avg.daily.use * 30
+
+
+# calculate bill (just water, no sewer)
+                                    # find block                                                                                       # add appropriate charges for consumption level
+all.sfds$total.water.bill <- ifelse(all.sfds$avg.30day.use <= volume_water_blk1_qty,                                                   fixed_water_rate + volume_water_blk1_rate * all.sfds$avg.30day.use,
+                                    
+                             ifelse(all.sfds$avg.30day.use >  volume_water_blk1_qty & all.sfds$avg.30day.use <= volume_water_blk2_qty, fixed_water_rate + volume_water_blk1_rate * volume_water_blk1_qty +
+                                                                                                                                           volume_water_blk2_rate * (all.sfds$avg.30day.use - volume_water_blk1_qty),
+                                           
+                             ifelse(all.sfds$avg.30day.use >  volume_water_blk2_qty,                                                   fixed_water_rate + volume_water_blk1_rate * volume_water_blk1_qty +
+                                                                                                                                           volume_water_blk2_rate * volume_water_blk2_qty +
+                                                                                                                                           volume_water_blk3_rate * (all.sfds$avg.30day.use - volume_water_blk2_qty), NA)))
+
+
+# if household has sewer service, add on the fixed and volumetric charge (BWS calculates sewer bill with 80% of HH's consumption to account for irrigation)
+all.sfds$total.water.sewer.bill <- ifelse(all.sfds$no.sewer == 'Sewer', all.sfds$total.water.bill + fixed_sewer_rate + volume_sewer_rate * all.sfds$avg.30day.use * 0.80, all.sfds$total.water.bill)
+
+
+# calculate average cost per gal
+all.sfds$total.water.sewer.bill.avg.per.gal <- all.sfds$total.water.sewer.bill / all.sfds$avg.30day.use
+
+```
+
+
+
+
+# 01 - Demand functions
+
+First we use current household consumption to estimate a demand curve, assuming the functional form P = AQ^(1/e). We use price elasticity demand estimates from the [water demand](https://www.researchgate.net/publication/343825978_Estimating_water_demand_using_price_differences_of_wastewater_services) paper. The elasticity and its confidence interval is used to estimate the $A$ parameter.
+
+```{r 01 - demand function estimate}
+
+
+# source the demand curve function
+source('Code/Functions/01-demand-curve-calculation.R')
+
+
+# for the different elasticity estimates, calculate A = P / Q^(1/e)
+all.sfds$A_elasticity020 <- demand_A(bill_avg_per_gal = all.sfds$total.water.sewer.bill.avg.per.gal,
+                                     avg_monthly_gal  = all.sfds$avg.30day.use,
+                                     elasticity       = -0.020)
+
+all.sfds$A_elasticity060 <- demand_A(bill_avg_per_gal = all.sfds$total.water.sewer.bill.avg.per.gal,
+                                     avg_monthly_gal  = all.sfds$avg.30day.use,
+                                     elasticity       = -0.060)
+
+all.sfds$A_elasticity326 <- demand_A(bill_avg_per_gal = all.sfds$total.water.sewer.bill.avg.per.gal,
+                                     avg_monthly_gal  = all.sfds$avg.30day.use,
+                                     elasticity       = -0.326)
+
+
+# get median A by group
+avg_A_elasticity_020 <- aggregate(all.sfds$A_elasticity020, list(all.sfds$no.sewer), median)
+avg_A_elasticity_060 <- aggregate(all.sfds$A_elasticity060, list(all.sfds$no.sewer), median)
+avg_A_elasticity_326 <- aggregate(all.sfds$A_elasticity326, list(all.sfds$no.sewer), median)
+
+
+# save `avg_A` files for use in figures
+saveRDS(avg_A_elasticity_020, file = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01b-avg_demand_A_vals_elasticity020.rds')
+saveRDS(avg_A_elasticity_060, file = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01b-avg_demand_A_vals_elasticity060.rds')
+saveRDS(avg_A_elasticity_326, file = 'C:/Users/nated/OneDrive - hawaii.edu/Documents/Projects/Water/Marginal vs average price welfare/Data/Intermediate/01b-avg_demand_A_vals_elasticity326.rds')
+
+
+rm(demand_A, avg_A_elasticity_020, avg_A_elasticity_060, avg_A_elasticity_326)
+
+```
+
+
+
+
+# 02 - Optimal consumption
+
+With the demand curves estimated for each household, we can calculate the present-day utility-maximizing and socially-optimal levels of consumption for each household. Utility-maximizing means present-day utility, with no regard to the marginal user cost of water use. Socially-optimal means consideration for MUC; we test an estimate from ()[]
+
+```{r 02 - optimal consumption}
+
+
+# load optimal consumption function
+source('Code/Functions/02-uniroot-optimal-consumption.R')
+
+
+
+### optimal consumption: elasticity -0.020
+
+elasticity_demand = -0.020
+
+# run for MUC = $0, MUC = $1.84/tgal, and MUC = $4.26/tgal
+all.sfds$avg.30day.use_optimal_elasticity020_MUC000 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity020, MUC = 0)
+all.sfds$avg.30day.use_optimal_elasticity020_MUC184 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity020, MUC = MUC)
+all.sfds$avg.30day.use_optimal_elasticity020_MUC368 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity020, MUC = MUC*2)
+
+
+
+### optimal consumption: elasticity -0.060
+
+elasticity_demand = -0.060
+
+# run for MUC = $0, MUC = $1.84/tgal, and MUC = $4.26/tgal
+all.sfds$avg.30day.use_optimal_elasticity060_MUC000 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity060, MUC = 0)
+all.sfds$avg.30day.use_optimal_elasticity060_MUC184 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity060, MUC = MUC)
+all.sfds$avg.30day.use_optimal_elasticity060_MUC368 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity060, MUC = MUC*2)
+
+
+
+### optimal consumption: elasticity -0.326
+
+elasticity_demand = -0.326
+
+# run for MUC = $0, MUC = $1.84/tgal, and MUC = $4.26/tgal
+all.sfds$avg.30day.use_optimal_elasticity326_MUC000 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity326, MUC = 0)
+all.sfds$avg.30day.use_optimal_elasticity326_MUC184 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity326, MUC = MUC)
+all.sfds$avg.30day.use_optimal_elasticity326_MUC368 <- optimal_consumption(data = all.sfds, A = all.sfds$A_elasticity326, MUC = MUC*2)
+
+
+# return elasticity to original value
+elasticity_demand = -0.060
+
+
+
+
+##### plot distributions #####
+
+# create box and whisker plots comparing optimal water use for mean elasticity estimate (-0.06)
+
+# melt data
+water_use_melt <- data.frame(value    = c(all.sfds$avg.30day.use, all.sfds$avg.30day.use_optimal_elasticity060_MUC000, all.sfds$avg.30day.use_optimal_elasticity060_MUC184,
+                                          all.sfds$avg.30day.use_optimal_elasticity060_MUC368),
+                             variable = rep(factor(c('Current use', 'Present-day\nutility maximizing', 'Socially optimal,\nMUC = $1.84/tgal', 'Socially optimal,\nMUC = $4.26/tgal'),
+                                                   levels = c('Current use', 'Present-day\nutility maximizing', 'Socially optimal,\nMUC = $1.84/tgal', 'Socially optimal,\nMUC = $4.26/tgal')),
+                                            each = nrow(all.sfds)))
+
+
+# plot distributions of water use: current, utility-maximizing, MUC = 1.84, and MUC = 4.26
+ggplot(data = water_use_melt) + geom_boxplot(aes(x = variable, y = value/1000),
+                                             outlier.shape = NA) +
+  
+  # change axis labels
+  labs(x = 'Consumption type', y = 'Household consumption (tgal/month)') +
+  
+  # adjust plot appearance
+  theme(legend.title = element_blank(), text = element_text(size = 15),
+        axis.ticks = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  
+  # adjust y scale to omit outliers
+  coord_cartesian(ylim = quantile(water_use_melt$value/1000, c(0, 0.95), na.rm = TRUE)) +
+  
+  # add median use to median bar in boxplots
+  annotate("text", x = 1:4,
+           y     = c(             median(water_use_melt[water_use_melt$variable == 'Current use',                         1], na.rm = TRUE)/1000+0.5,
+                                  median(water_use_melt[water_use_melt$variable == 'Present-day\nutility maximizing',     1], na.rm = TRUE)/1000+0.5,
+                                  median(water_use_melt[water_use_melt$variable == 'Socially optimal,\nMUC = $1.84/tgal', 1], na.rm = TRUE)/1000+0.5,
+                                  median(water_use_melt[water_use_melt$variable == 'Socially optimal,\nMUC = $4.26/tgal', 1], na.rm = TRUE)/1000+0.5),
+           
+           label = c(format(round(median(water_use_melt[water_use_melt$variable == 'Current use',                         1], na.rm = TRUE)/1000, 2), nsmall = 2),
+                     format(round(median(water_use_melt[water_use_melt$variable == 'Present-day\nutility maximizing',     1], na.rm = TRUE)/1000, 2), nsmall = 2),
+                     format(round(median(water_use_melt[water_use_melt$variable == 'Socially optimal,\nMUC = $1.84/tgal', 1], na.rm = TRUE)/1000, 2), nsmall = 2),
+                     format(round(median(water_use_melt[water_use_melt$variable == 'Socially optimal,\nMUC = $4.26/tgal', 1], na.rm = TRUE)/1000, 2), nsmall = 2)))
+
+ggsave(filename = 'Figures/Images/02-optimal-water-use-distributions.png', height = 5, width = 7, dpi = 300)
+
+
+rm(optimal_consumption, Q_intercept_fcn)
+
+```
+
+
+
+
+# 03 - deadweight loss
+
+We now know the difference between current and optimal consumption (with and without consideration of scarcity pricing). Use these values, the demand curves, and the pricing function to estimate monthly deadweight loss for each household.
+
+```{r 03 - deadweight loss}
+
+
+# load deadweight loss function
+source('Code/Functions/03-deadweight-loss-fcn.R')
+
+
+
+
+##### household-level DWL #####
+
+# find DWL for each combination of elasticity and MUC value
+
+
+# elasticity -0.02; MUC = 0, MUC = 1.84, and MUC = 4.26
+
+elasticity_demand <- -0.020
+
+all.sfds$DWL_optimal_elasticity020_MUC000 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity020_MUC000[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC000[[i]],
+                                                                                             A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+all.sfds$DWL_optimal_elasticity020_MUC184 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity020_MUC184[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC184[[i]],
+                                                                                             A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+all.sfds$DWL_optimal_elasticity020_MUC368 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity020_MUC368[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity020_MUC368[[i]],
+                                                                                             A = all.sfds$A_elasticity020[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+
+
+# elasticity -0.060
+
+elasticity_demand <- -0.060
+
+all.sfds$DWL_optimal_elasticity060_MUC000 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity060_MUC000[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC000[[i]],
+                                                                                             A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+all.sfds$DWL_optimal_elasticity060_MUC184 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity060_MUC184[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC184[[i]],
+                                                                                             A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+all.sfds$DWL_optimal_elasticity060_MUC368 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity060_MUC368[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity060_MUC368[[i]],
+                                                                                             A = all.sfds$A_elasticity060[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+
+
+# elasticity -0.326
+
+elasticity_demand <- -0.326
+
+all.sfds$DWL_optimal_elasticity326_MUC000 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity326_MUC000[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC000[[i]],
+                                                                                             A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+all.sfds$DWL_optimal_elasticity326_MUC184 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity326_MUC184[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC184[[i]],
+                                                                                             A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+all.sfds$DWL_optimal_elasticity326_MUC368 <- NA
+for(i in 1:nrow(all.sfds)){all.sfds$DWL_optimal_elasticity326_MUC368[[i]] <- deadweight_loss(q_actual = all.sfds$avg.30day.use[[i]], q_optimal = all.sfds$avg.30day.use_optimal_elasticity326_MUC368[[i]],
+                                                                                             A = all.sfds$A_elasticity326[[i]], no.sewer = all.sfds$no.sewer[[i]])}
+
+
+
+
+##### sum island-wide residential DWL #####
+
+
+# elasticity -0.020
+sum(all.sfds$DWL_optimal_elasticity020_MUC000, na.rm = TRUE)
+sum(all.sfds$DWL_optimal_elasticity020_MUC184, na.rm = TRUE)
+sum(all.sfds$DWL_optimal_elasticity020_MUC368, na.rm = TRUE)
+
+# elasticity -0.060
+sum(all.sfds$DWL_optimal_elasticity060_MUC000, na.rm = TRUE)
+sum(all.sfds$DWL_optimal_elasticity060_MUC184, na.rm = TRUE)
+sum(all.sfds$DWL_optimal_elasticity060_MUC368, na.rm = TRUE)
+
+# elasticity -0.326
+sum(all.sfds$DWL_optimal_elasticity326_MUC000, na.rm = TRUE)
+sum(all.sfds$DWL_optimal_elasticity326_MUC184, na.rm = TRUE)
+sum(all.sfds$DWL_optimal_elasticity326_MUC368, na.rm = TRUE)
+
+
+rm(deadweight_loss,i)
+
+```
+
+

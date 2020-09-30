@@ -8,8 +8,8 @@
 elasticity_demand <- -0.06
 
 
-# define marginal user cost (MUC) in dollars per gallon - default is 2.13/1000
-MUC <- 2.13 / 1000
+# define marginal user cost (MUC) in dollars per gallon - default is 1.84/1000
+MUC <- 1.84 / 1000
 
 
 # water prices - PER GALLON

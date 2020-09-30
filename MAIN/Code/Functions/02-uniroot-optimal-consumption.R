@@ -5,15 +5,6 @@
 ### This script creates the function used to calculate optimal consumption using consumer demand curves and water prices
 
 
-# load packages
-library(doParallel)
-registerDoParallel(cores = 5)
-
-
-# load definitions and data
-source("MAIN/00-definitions.R")
-
-
 # create function that finds when the demand curve of a house intersects a given value/MC - we subtract the block rate so we can use the uniroot function to find where the demand equals 0
   # A is the calculated demand function coefficient
   # Qobs is the observed quantity consumed, in 1000s of gallons
