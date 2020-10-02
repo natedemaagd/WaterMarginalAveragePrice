@@ -55,8 +55,8 @@ Under the current block prices, what are consumers paying for their water? What 
 
 
 # total revenue
-total_revenue_current     <- sum(all.sfds$total.water.bill, na.rm = TRUE)
-total_revenue_label       <- paste0('$', round(total_revenue/1e6, 2))
+total_revenue_current       <- sum(all.sfds$total.water.bill, na.rm = TRUE)/1e6
+total_revenue_current_label <- paste0('$', round(total_revenue_current, 2))
 
 
 # boxplot of water bill (note we exclude the sewer portion since that is not revenue for the water utility)
@@ -65,8 +65,111 @@ current_revenue_density <- ggplot(data = all.sfds) +
                  bins = 100, alpha = 0.6, color = 'gray30', fill = 'gray30') +
   scale_x_continuous(limits = quantile(all.sfds$total.water.bill, probs = c(0.01, 0.98))) +
   labs(x = 'Household average water bill ($/mo)', y = 'Number of households') +
-  annotate('text', x = 100, y = 4000, label = paste0("Water utility current revenue\n", total_revenue_mil, ' mil/mo'), hjust = 0)
+  annotate('text', x = 100, y = 4000, label = paste0("Water utility current revenue\n", total_revenue_current_label, ' mil/mo'), hjust = 0)
 
 ggsave(filename = "Figures/Images/04-current-water-bills.png", height = 4, width = 7)
+
+```
+
+
+
+
+# 05 - Constant marginal price, no fixed price
+
+Using household demand functions, find a marginal price that would yield the same revenue as the current pricing structure, assuming no fixed charge. 
+
+```{r constant marginal, no fixed}
+
+
+# load demand function
+source('Code/Functions/05-demand-given-price.R')
+
+
+
+
+##### first test marginal rate = avg $/gal of current system #####
+
+
+# get summary of current $/gal for each household
+  # no sewer: current mean is $0.008194904 per gallon; median is $0.005546433 per gallon
+  # sewer:    current mean is $0.02566547  per gallon; median is $0.02007204  per gallon
+aggregate(all.sfds$total.water.sewer.bill.avg.per.gal, list(all.sfds$no.sewer), summary)
+
+
+# calculate monthly water use under Constant Marginal Price (based on mean and median of current average prices)
+all.sfds$avg.30day.use_CMPmeancurrent_elasticity020   <- demand(A = all.sfds$A_elasticity020, price_water = 0.008194904, price_water_sewer = 0.02566547, elasticity = -0.020, no.sewer = all.sfds$no.sewer)
+all.sfds$avg.30day.use_CMPmeancurrent_elasticity060   <- demand(A = all.sfds$A_elasticity060, price_water = 0.008194904, price_water_sewer = 0.02566547, elasticity = -0.060, no.sewer = all.sfds$no.sewer)
+all.sfds$avg.30day.use_CMPmeancurrent_elasticity326   <- demand(A = all.sfds$A_elasticity326, price_water = 0.008194904, price_water_sewer = 0.02566547, elasticity = -0.326, no.sewer = all.sfds$no.sewer)
+
+
+# calculate revenue under this pricing
+total_revenue_CMPmeancurrent_elasticity020 <- all.sfds$avg.30day.use_CMPmeancurrent_elasticity020 * 0.008194904
+total_revenue_CMPmeancurrent_elasticity020 <- sum(total_revenue_CMPmeancurrent_elasticity020[!is.infinite(total_revenue_CMPmeancurrent_elasticity020)], na.rm = TRUE) / 1e6
+
+total_revenue_CMPmeancurrent_elasticity060 <- all.sfds$avg.30day.use_CMPmeancurrent_elasticity060 * 0.008194904
+total_revenue_CMPmeancurrent_elasticity060 <- sum(total_revenue_CMPmeancurrent_elasticity060[!is.infinite(total_revenue_CMPmeancurrent_elasticity060)], na.rm = TRUE) / 1e6
+
+total_revenue_CMPmeancurrent_elasticity326 <- all.sfds$avg.30day.use_CMPmeancurrent_elasticity326 * 0.008194904
+total_revenue_CMPmeancurrent_elasticity326 <- sum(total_revenue_CMPmeancurrent_elasticity326[!is.infinite(total_revenue_CMPmeancurrent_elasticity326)], na.rm = TRUE) / 1e6
+
+
+
+
+# plot consumption under this pricing scheme
+
+
+    # melt data
+    all.sfds.melt <- data.frame(value = c(all.sfds$avg.30day.use, all.sfds$avg.30day.use_CMPmeancurrent_elasticity020, all.sfds$avg.30day.use_CMPmeancurrent_elasticity060,
+                                          all.sfds$avg.30day.use_CMPmeancurrent_elasticity326),
+                                variable = rep(c('Current', 'Elasticity = -0.020', 'Elasticity = -0.060', 'Elasticity = -0.326'), each = nrow(all.sfds)))
+    
+    
+    # get median values by group to add to boxplot
+    cons_by_group <- aggregate(all.sfds.melt$value, by = list(all.sfds.melt$variable), median)
+    
+    
+CMP_consumption_distributions <- ggplot(data = all.sfds.melt) +
+  
+  geom_boxplot(aes(x = variable, y = value), outlier.shape = NA) +
+  
+  scale_y_continuous(limits = quantile(all.sfds.melt$value, probs = c(0, 0.90))) +
+  
+  scale_x_discrete(labels = c('Current', 'Elasticity = -0.020', 'Elasticity = -0.060', 'Elasticity = -0.326')) +
+  
+  labs(x = NULL, y = 'Gallons per month per household') +
+  
+  annotate('text', x = 1:4, y = (cons_by_group$x)+50, label = round(cons_by_group$x)) +
+  
+  theme(legend.title = element_blank())
+
+
+ggsave(plot = CMP_consumption_distributions, filename = "Figures/Images/05-water-consumption-under-CMPcurrentmean.png", height = 5, width = 7)
+
+
+
+
+##### second: test marginal rate = marginal cost + MUC #####
+
+
+# define marginal cost
+MC = 0.31 / 1000
+
+
+# calculate monthly water use under Constant Marginal Price (based on marginal cost + MUC, average sewer price)
+all.sfds$avg.30day.use_CMP_MC_MUC184_elasticity020   <- demand(A = all.sfds$A_elasticity020, price_water = MC + MUC, price_water_sewer = 0.02566547, elasticity = -0.020, no.sewer = all.sfds$no.sewer)
+all.sfds$avg.30day.use_CMP_MC_MUC184_elasticity060   <- demand(A = all.sfds$A_elasticity060, price_water = MC + MUC, price_water_sewer = 0.02566547, elasticity = -0.060, no.sewer = all.sfds$no.sewer)
+all.sfds$avg.30day.use_CMP_MC_MUC184_elasticity326   <- demand(A = all.sfds$A_elasticity326, price_water = MC + MUC, price_water_sewer = 0.02566547, elasticity = -0.326, no.sewer = all.sfds$no.sewer)
+
+
+# calculate revenue under this pricing
+total_revenue_CMP_MC_MUC184_elasticity020 <- all.sfds$avg.30day.use_CMP_MC_MUC184_elasticity020 * (MC + MUC)
+total_revenue_CMP_MC_MUC184_elasticity020 <- sum(total_revenue_CMP_MC_MUC184_elasticity020[!is.infinite(total_revenue_CMP_MC_MUC184_elasticity020)], na.rm = TRUE) / 1e6
+
+total_revenue_CMP_MC_MUC184_elasticity060 <- all.sfds$avg.30day.use_CMP_MC_MUC184_elasticity060 * (MC + MUC)
+total_revenue_CMP_MC_MUC184_elasticity060 <- sum(total_revenue_CMP_MC_MUC184_elasticity060[!is.infinite(total_revenue_CMP_MC_MUC184_elasticity060)], na.rm = TRUE) / 1e6
+
+total_revenue_CMP_MC_MUC184_elasticity326 <- all.sfds$avg.30day.use_CMP_MC_MUC184_elasticity326 * (MC + MUC)
+total_revenue_CMP_MC_MUC184_elasticity326 <- sum(total_revenue_CMP_MC_MUC184_elasticity326[!is.infinite(total_revenue_CMP_MC_MUC184_elasticity326)], na.rm = TRUE) / 1e6
+
 
 ```
