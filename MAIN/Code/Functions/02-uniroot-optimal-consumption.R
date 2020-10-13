@@ -21,6 +21,9 @@ Q_intercept_fcn <- function(A, Qobs, blk_rate){A*Qobs^(1/elasticity_demand) - bl
 
 optimal_consumption <- function(data, A, MUC = 0){
   
+  
+  
+  # get optimal consumption given demand
   x <- list()
                                                                         
   for(i in 1:nrow(data)){
@@ -31,33 +34,57 @@ optimal_consumption <- function(data, A, MUC = 0){
     if(data$no.sewer[[i]] == 'Other'){
     
       # optimal consumption in the first block?
-      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = volume_water_blk1_rate + MUC), silent = TRUE), 'try-error')),
-                      uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = volume_water_blk1_rate + MUC)[[1]],
+      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk1_rate + MUC)), silent = TRUE), 'try-error')),
+                      uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk1_rate + MUC))[[1]],
       
       # optimal consumption in the second block?     
-      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = volume_water_blk2_rate + MUC), silent = TRUE), 'try-error')),
-                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = volume_water_blk2_rate + MUC)[[1]],
+      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk2_rate + MUC)), silent = TRUE), 'try-error')),
+                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk2_rate + MUC))[[1]],
        
       # optimal consumption in the third block?             
-      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = volume_water_blk3_rate + MUC), silent = TRUE), 'try-error')),
-                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = volume_water_blk3_rate + MUC)[[1]], NA)))
+      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = (volume_water_blk3_rate + MUC)), silent = TRUE), 'try-error')),
+                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = (volume_water_blk3_rate + MUC))[[1]], NA)))
       
     
     # if household has a sewer connection, calculate consumption based on marginal water rate and marginal sewer rate
     } else {
         
       # optimal consumption in the first block?
-      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = volume_water_blk1_rate + volume_sewer_rate + MUC), silent = TRUE), 'try-error')),
-                      uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = volume_water_blk1_rate + volume_sewer_rate + MUC)[[1]],
+      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk1_rate + volume_sewer_rate + MUC)), silent = TRUE), 'try-error')),
+                      uniroot(f = Q_intercept_fcn, interval = c(                    1, volume_water_blk1_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk1_rate + volume_sewer_rate + MUC))[[1]],
              
       # optimal consumption in the second block?     
-      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = volume_water_blk2_rate + volume_sewer_rate + MUC), silent = TRUE), 'try-error')),
-                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = volume_water_blk2_rate + volume_sewer_rate + MUC)[[1]],
+      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk2_rate + volume_sewer_rate + MUC)), silent = TRUE), 'try-error')),
+                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk1_qty, volume_water_blk2_qty-0.01), A = A[[i]], blk_rate = (volume_water_blk2_rate + volume_sewer_rate + MUC))[[1]],
                     
       # optimal consumption in the third block?             
-      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = volume_water_blk3_rate + volume_sewer_rate + MUC), silent = TRUE), 'try-error')),
-                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = volume_water_blk3_rate + volume_sewer_rate + MUC)[[1]], NA)))
+      ifelse(!(is(try(uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = (volume_water_blk3_rate + volume_sewer_rate + MUC)), silent = TRUE), 'try-error')),
+                      uniroot(f = Q_intercept_fcn, interval = c(volume_water_blk2_qty, 7700000),                    A = A[[i]], blk_rate = (volume_water_blk3_rate + volume_sewer_rate + MUC))[[1]], NA)))
       
+      
+    }
+    
+  }
+  
+  
+  
+  # if current consumption is in one block and optimal is in another, adjust optimal consumption to be at the block limit
+  for(i in 1:length(x)){
+    
+    # if current consumption in first block and optimal consumption in second block, optimal consumption should be at the first block cutoff
+    if(all.sfds$avg.30day.use[[i]] < volume_water_blk1_qty  &  x[[i]] > volume_water_blk1_qty  &  !is.na(x[[i]])){
+      
+      x[[i]] <- volume_water_blk1_qty
+    
+    # if current consumption in second block and optimal consumption in third block, optimal consumption should be at the second block cutoff
+    } else if(all.sfds$avg.30day.use[[i]] > volume_water_blk1_qty  &  all.sfds$avg.30day.use[[i]] < volume_water_blk2_qty  &  x[[i]] > volume_water_blk2_qty  &  !is.na(x[[i]])){
+      
+      x[[i]] <- volume_water_blk2_qty
+    
+    # most people won't be at the cutoffs: just return their optimal consumption unchanged    
+    } else {
+      
+      x[[i]] <- x[[i]]
       
     }
     
