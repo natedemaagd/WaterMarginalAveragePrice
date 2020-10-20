@@ -69,6 +69,7 @@ optimal_consumption <- function(data, A, MUC = 0){
   
   
   # if current consumption is in one block and optimal is in another, adjust optimal consumption to be at the block limit
+    # i.e. account for the fact that many demand curves hit the vertical portions of the MP curve at the block limits
   for(i in 1:length(x)){
     
     # if current consumption in first block and optimal consumption in second block, optimal consumption should be at the first block cutoff
